@@ -1,0 +1,57 @@
+HTML Clones 
+
+Project Goal:
+
+- This project aims to automatically group HTML files that are visually and structurally similar from the perspective of a human user. The grouping is based on content (text), layout (DOM structure), and design (CSS classes).
+
+
+
+To properly solve this, I avoided relying solely on text comparison. Instead, I treated each HTML file as a multi-dimensional object composed of:
+- Visible content (what the user reads)
+- DOM structure   (how the page is built)
+- CSS classes     (how the page looks visually)
+
+By combining these three dimensions, the algorithm creates a robust fingerprint for each HTML file. This allows it to detect duplicates or structural clones, even if their content is slightly different.
+
+1. Text Analysis:
+I extracted the visible content using "BeautifulSoup", and transformed it using "TfidfVectorizer", which:
+- Highlights meaningful terms while ignoring common words
+- Allows detecting clones even with slightly altered wording
+
+2. DOM Structure:
+- The sequence of HTML tags ("<div>", "<section>") is used as a representation of the layout
+- Pages using the same template will have similar tag sequences
+- I encoded this using "CountVectorizer", capturing the layout's structure as a vector
+
+3. CSS Class Analysis:
+- CSS classes were extracted from every tag and vectorized to capture the visual identity (they are then often reused across clones).
+- I used "CountVectorizer" to transform the styling into numerical form.
+
+All three components were combined using "hstack()" into a single feature matrix.
+
+
+Clustering with DBSCAN:
+Instead of defining the number of clusters upfront (as with KMeans), I chose DBSCAN, which:
+- Automatically detects clusters based on density
+- Identifies outliers (pages without similar clones)
+- Works well with cosine distances
+
+Key parameters:
+- "eps = 0.25": maximum distance between two pages to be considered similar (tuned after testing)
+- "min_samples = 2": a cluster must contain at least two HTML files
+
+This setup allows the algorithm to find both large and small clusters of similar HTML pages, without overfitting or underfitting.
+
+After the program is executed, .csv files with the results will be generated in the "results" folder and pictures with represnative diagrams will be saved in the "diagrams" folder within the working directory.
+
+
+
+ Libraries Used
+- BeautifulSoup: HTML parsing, text and attribute extraction
+- TfidfVectorizer: transforms visible text into semantic vectors
+- CountVectorizer: encodes HTML tags and CSS classes as frequency-based vectors
+- cosine_similarity: measures similarity between combined vectors
+- DBSCAN: density-based clustering
+- Pandas: results storage and CSV generation
+- Matplotlib + PCA: 2D visualization of clustering
+- datetime : for saving the .csv and .png with timestamps
